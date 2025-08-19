@@ -1,0 +1,266 @@
+# 数据源配置文件
+# 用于配置各种数据源的参数
+
+# 市场数据配置
+market_data:
+  enabled: true
+  source: "okx"
+  
+  # OKX配置
+  okx:
+    sandbox: true  # 是否使用沙盒环境
+    api_key: "${OKX_API_KEY}"
+    secret_key: "${OKX_SECRET_KEY}"
+    passphrase: "${OKX_PASSPHRASE}"
+    
+    # 默认订阅的交易对
+    default_symbols:
+      - "BTC-USDT"
+      - "ETH-USDT"
+      - "BNB-USDT"
+      - "ADA-USDT"
+      - "DOT-USDT"
+    
+    # WebSocket配置
+    websocket:
+      reconnect_interval: 5  # 重连间隔（秒）
+      max_reconnect_attempts: 10
+      ping_interval: 30
+      
+    # 数据配置
+    timeframes:
+      - "1m"
+      - "5m"
+      - "15m"
+      - "1H"
+      - "1D"
+    
+    # 历史数据限制
+    historical_limit: 1000
+
+# 新闻数据配置
+news_data:
+  enabled: true
+  polling_interval: 300  # 轮询间隔（秒）
+  
+  # 新闻源配置
+  sources:
+    coindesk:
+      rss_url: "https://www.coindesk.com/arc/outboundfeeds/rss/"
+      base_url: "https://www.coindesk.com"
+      keywords:
+        - "bitcoin"
+        - "ethereum"
+        - "crypto"
+        - "blockchain"
+        - "defi"
+        - "nft"
+      weight: 1.0
+      
+    cointelegraph:
+      rss_url: "https://cointelegraph.com/rss"
+      base_url: "https://cointelegraph.com"
+      keywords:
+        - "bitcoin"
+        - "ethereum"
+        - "altcoin"
+        - "trading"
+        - "market"
+      weight: 0.8
+      
+    decrypt:
+      rss_url: "https://decrypt.co/feed"
+      base_url: "https://decrypt.co"
+      keywords:
+        - "crypto"
+        - "web3"
+        - "defi"
+        - "dao"
+      weight: 0.6
+  
+  # 内容过滤
+  filters:
+    min_relevance: 0.3  # 最小相关性分数
+    max_age_hours: 24   # 最大新闻年龄（小时）
+    
+    # 排除关键词
+    exclude_keywords:
+      - "advertisement"
+      - "sponsored"
+      - "promotion"
+    
+    # 语言过滤
+    languages:
+      - "en"
+      - "zh"
+
+# 大户监控配置
+whale_data:
+  enabled: false  # 需要API密钥才能启用
+  source: "whale_alert"
+  
+  # Whale Alert配置
+  whale_alert:
+    api_key: "${WHALE_ALERT_API_KEY}"
+    polling_interval: 60  # 轮询间隔（秒）
+    min_amount: 1000000   # 最小监控金额（美元）
+    
+    # 支持的区块链
+    blockchains:
+      - "bitcoin"
+      - "ethereum"
+      - "tron"
+      - "bsc"
+      - "polygon"
+      - "avalanche"
+      - "arbitrum"
+    
+    # 监控的币种
+    currencies:
+      - "BTC"
+      - "ETH"
+      - "USDT"
+      - "USDC"
+      - "BNB"
+      - "ADA"
+      - "DOT"
+      - "LINK"
+    
+    # 交易所地址（可扩展）
+    exchange_addresses:
+      # Bitcoin地址
+      "1P5ZEDWTKTFGxQjZphgWPQUpe554WKDfHQ": "Bitfinex"
+      "3Kzh9qAqVWQhEsfQz7zEQL1EuSx5tyNLNS": "Binance"
+      "3LYJfcfHPXYJreMsASk2jkn69LWEYKzexb": "Bittrex"
+      
+      # Ethereum地址
+      "0x3f5ce5fbfe3e9af3971dd833d26ba9b5c936f0be": "Binance"
+      "0xd551234ae421e3bcba99a0da6d736074f22192ff": "Binance"
+      "0x564286362092d8e7936f0549571a803b203aaced": "Binance"
+      "0x0681d8db095565fe8a346fa0277bffde9c0edbbf": "Kraken"
+      "0xe93381fb4c4f14bda253907b18fad305d799241a": "Huobi"
+
+# 数据处理配置
+data_processing:
+  # 缓存配置
+  cache:
+    max_market_data_per_symbol: 1000
+    max_news_items: 500
+    max_whale_alerts: 200
+    
+  # 数据清理
+  cleanup:
+    market_data_retention_hours: 168  # 7天
+    news_retention_hours: 72          # 3天
+    whale_alerts_retention_hours: 48  # 2天
+    
+  # 实时处理
+  realtime:
+    batch_size: 100
+    processing_interval: 1  # 秒
+    
+  # 技术指标计算
+  indicators:
+    enabled: true
+    calculate_on_new_data: true
+    
+    # 移动平均线
+    moving_averages:
+      - 5
+      - 10
+      - 20
+      - 50
+      - 200
+    
+    # RSI
+    rsi:
+      period: 14
+    
+    # MACD
+    macd:
+      fast_period: 12
+      slow_period: 26
+      signal_period: 9
+
+# 数据存储配置
+data_storage:
+  # 数据库配置
+  database:
+    enabled: true
+    batch_insert_size: 1000
+    
+    # 表配置
+    tables:
+      market_data:
+        partition_by: "day"
+        retention_days: 30
+        
+      news_data:
+        partition_by: "day"
+        retention_days: 7
+        
+      whale_alerts:
+        partition_by: "day"
+        retention_days: 14
+  
+  # 文件存储配置
+  file_storage:
+    enabled: false
+    base_path: "./data"
+    format: "parquet"  # parquet, csv, json
+    
+    compression: "gzip"
+    rotation: "daily"
+
+# 监控和告警配置
+monitoring:
+  # 数据质量监控
+  data_quality:
+    enabled: true
+    
+    # 数据延迟告警
+    latency_threshold_seconds: 60
+    
+    # 数据缺失告警
+    missing_data_threshold_minutes: 5
+    
+    # 异常数据检测
+    anomaly_detection:
+      enabled: true
+      sensitivity: 0.8
+  
+  # 性能监控
+  performance:
+    enabled: true
+    
+    # 内存使用告警
+    memory_threshold_mb: 1000
+    
+    # CPU使用告警
+    cpu_threshold_percent: 80
+    
+    # 网络延迟告警
+    network_latency_threshold_ms: 1000
+
+# 日志配置
+logging:
+  level: "INFO"
+  
+  # 数据源日志
+  data_sources:
+    market_data: "INFO"
+    news_data: "INFO"
+    whale_data: "INFO"
+  
+  # 输出配置
+  handlers:
+    console:
+      enabled: true
+      level: "INFO"
+      
+    file:
+      enabled: true
+      level: "DEBUG"
+      path: "./logs/data_collection.log"
+      rotation: "1 day"
+      retention: "7 days"

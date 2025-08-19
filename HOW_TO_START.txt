@@ -1,0 +1,44 @@
+Trading Robot - Quick Start Guide
+=====================================
+
+REQUIREMENTS:
+- Docker Desktop (https://www.docker.com/products/docker-desktop)
+- Windows 10/11
+- 8GB+ RAM
+
+QUICK START:
+1. Install Docker Desktop
+2. Start Docker Desktop
+3. Double-click: run.bat
+4. Wait for startup (may take 5-10 minutes first time)
+5. Browser will open automatically
+
+ACCESS URLS:
+- Frontend: http://localhost:3000
+- API Docs: http://localhost:8000/docs
+- Monitor:  http://localhost:3001 (admin/admin123)
+
+MANAGEMENT:
+- Start:  run.bat
+- Stop:   stop.bat
+- Status: check.bat
+
+TROUBLESHOOTING:
+1. Make sure Docker Desktop is running
+2. Check if ports 3000, 8000, 3001 are free
+3. Run: docker-compose logs backend
+4. Restart Docker Desktop if needed
+
+FIRST TIME SETUP:
+The system will automatically:
+- Download required images
+- Create database
+- Initialize data
+- Start all services
+
+This may take 5-10 minutes on first run.
+
+SUPPORT:
+- Check README.md for detailed documentation
+- View logs: docker-compose logs [service-name]
+- Restart: stop.bat then run.bat
