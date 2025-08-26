@@ -1,27 +1,27 @@
 @echo off
 chcp 65001 >nul
-title Trading Robot - 查看日志
+title Trading Robot - View Logs
 
 echo.
 echo ==========================================
-echo     📝 Trading Robot 日志查看
+echo     Trading Robot Log Viewer
 echo ==========================================
 echo.
 
-echo 请选择要查看的服务日志:
+echo Please select service logs to view:
 echo.
-echo 1. 后端服务 (backend)
-echo 2. 前端服务 (frontend)
-echo 3. 数据库 (postgres)
-echo 4. 缓存 (redis)
-echo 5. 任务队列 (celery_worker)
-echo 6. 定时任务 (celery_beat)
-echo 7. 代理服务 (nginx)
-echo 8. 所有服务
-echo 9. 实时日志 (所有服务)
+echo 1. Backend Service (backend)
+echo 2. Frontend Service (frontend)
+echo 3. Database (postgres)
+echo 4. Cache (redis)
+echo 5. Task Queue (celery_worker)
+echo 6. Scheduled Tasks (celery_beat)
+echo 7. Proxy Service (nginx)
+echo 8. All Services
+echo 9. Live Logs (All Services)
 echo.
 
-set /p choice="请输入选择 (1-9): "
+set /p choice="Enter your choice (1-9): "
 
 if "%choice%"=="1" (
     docker-compose logs backend
@@ -40,12 +40,12 @@ if "%choice%"=="1" (
 ) else if "%choice%"=="8" (
     docker-compose logs
 ) else if "%choice%"=="9" (
-    echo 按 Ctrl+C 退出实时日志查看
+    echo Press Ctrl+C to exit live log viewing
     docker-compose logs -f
 ) else (
-    echo 无效选择
+    echo Invalid choice
 )
 
 echo.
-echo 按任意键退出...
+echo Press any key to exit...
 pause >nul

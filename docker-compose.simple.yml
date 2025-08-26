@@ -1,0 +1,72 @@
+# Simplified Trading Robot Docker Compose Configuration
+# Uses more common/cached images to avoid network issues
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:latest
+    container_name: trading_robot_postgres
+    environment:
+      POSTGRES_DB: trading_robot
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - trading_network
+    restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis:latest
+    container_name: trading_robot_redis
+    command: redis-server --appendonly yes --requirepass redis_password
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - trading_network
+    restart: unless-stopped
+
+  # Backend API Service (using pre-built image if available)
+  backend:
+    image: python:latest
+    container_name: trading_robot_backend
+    working_dir: /app
+    command: >
+      sh -c "
+        pip install --upgrade pip &&
+        pip install fastapi uvicorn sqlalchemy psycopg2-binary redis celery &&
+        python -c 'print(\"Backend container ready\")' &&
+        tail -f /dev/null
+      "
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:password@postgres:5432/trading_robot
+      - REDIS_URL=redis://:redis_password@redis:6379/0
+      - SECRET_KEY=your-super-secret-key-change-in-production
+      - DEBUG=false
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./backend:/app
+      - ./backend/logs:/app/logs
+      - ./backend/data:/app/data
+    ports:
+      - "8000:8000"
+    networks:
+      - trading_network
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+
+networks:
+  trading_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

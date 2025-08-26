@@ -2,150 +2,150 @@
 chcp 65001 >nul
 echo.
 echo ========================================
-echo    🚀 Trading Robot 一键启动脚本
+echo    Trading Robot Full Start Script
 echo ========================================
 echo.
 
-:: 检查Docker是否安装
+:: Check if Docker is installed
 docker --version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo ❌ 错误: Docker未安装或未启动
-    echo 请先安装Docker Desktop: https://www.docker.com/products/docker-desktop
+    echo [ERROR] Docker is not installed or not running
+    echo Please install Docker Desktop: https://www.docker.com/products/docker-desktop
     pause
     exit /b 1
 )
 
-:: 检查Docker Compose是否可用
+:: Check if Docker Compose is available
 docker-compose --version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo ❌ 错误: Docker Compose不可用
+    echo [ERROR] Docker Compose is not available
     pause
     exit /b 1
 )
 
-echo ✅ Docker环境检查通过
+echo [OK] Docker environment check passed
 echo.
 
-:: 检查并创建环境配置文件
+:: Check and create environment configuration files
 if not exist ".env" (
-    echo 📝 创建环境配置文件...
+    echo Creating environment configuration file...
     copy ".env.example" ".env" >nul
-    echo ✅ 已创建 .env 文件，使用默认配置
+    echo [OK] Created .env file with default configuration
 ) else (
-    echo ✅ 环境配置文件已存在
+    echo [OK] Environment configuration file exists
 )
 
 if not exist "backend\monitoring.env" (
-    echo 📝 创建监控配置文件...
+    echo Creating monitoring configuration file...
     copy "backend\monitoring.env.example" "backend\monitoring.env" >nul
-    echo ✅ 已创建监控配置文件
+    echo [OK] Created monitoring configuration file
 )
 
 echo.
-echo 🚀 开始启动服务...
+echo Starting services...
 echo.
 
-:: 停止可能存在的旧容器
-echo 🧹 清理旧容器...
+:: Stop any existing containers
+echo Cleaning up old containers...
 docker-compose down >nul 2>&1
 
-:: 构建并启动基础服务
-echo 📦 启动数据库和缓存服务...
+:: Build and start basic services
+echo Starting database and cache services...
 docker-compose up -d postgres redis
 if %errorlevel% neq 0 (
-    echo ❌ 基础服务启动失败
+    echo [ERROR] Basic services startup failed
     pause
     exit /b 1
 )
 
-:: 等待数据库启动
-echo ⏳ 等待数据库启动 (15秒)...
+:: Wait for database to start
+echo Waiting for database to start (15 seconds)...
 timeout /t 15 /nobreak >nul
 
-:: 构建并启动后端服务
-echo 🔧 构建并启动后端服务...
+:: Build and start backend service
+echo Building and starting backend service...
 docker-compose up -d --build backend
 if %errorlevel% neq 0 (
-    echo ❌ 后端服务启动失败
+    echo [ERROR] Backend service startup failed
     pause
     exit /b 1
 )
 
-:: 等待后端启动
-echo ⏳ 等待后端服务启动 (10秒)...
+:: Wait for backend to start
+echo Waiting for backend service to start (10 seconds)...
 timeout /t 10 /nobreak >nul
 
-:: 运行数据库初始化
-echo 🗄️ 初始化数据库...
+:: Run database initialization
+echo Initializing database...
 docker-compose exec -T backend python scripts/init_database.py
 if %errorlevel% neq 0 (
-    echo ⚠️ 数据库初始化可能失败，但继续启动其他服务...
+    echo [WARNING] Database initialization may have failed, but continuing with other services...
 )
 
-:: 启动任务队列
-echo 📋 启动任务队列服务...
+:: Start task queue
+echo Starting task queue services...
 docker-compose up -d celery_worker celery_beat
 
-:: 构建并启动前端
-echo 🎨 构建并启动前端服务...
+:: Build and start frontend
+echo Building and starting frontend service...
 docker-compose up -d --build frontend
 
-:: 启动代理服务
-echo 🌐 启动Nginx代理...
+:: Start proxy service
+echo Starting Nginx proxy...
 docker-compose up -d nginx
 
-:: 启动监控服务（可选）
-echo 📊 启动监控服务...
+:: Start monitoring services (optional)
+echo Starting monitoring services...
 docker-compose up -d prometheus grafana
 
 echo.
 echo ========================================
-echo           🎉 启动完成！
+echo           Startup Complete!
 echo ========================================
 echo.
-echo 📱 访问地址:
-echo   前端界面: http://localhost:3000
-echo   API文档:  http://localhost:8000/docs
-echo   监控面板: http://localhost:3001 (admin/admin123)
+echo Access URLs:
+echo   Frontend: http://localhost:3000
+echo   API Docs: http://localhost:8000/docs
+echo   Monitor:  http://localhost:3001 (admin/admin123)
 echo.
-echo 📋 常用命令:
-echo   查看状态: docker-compose ps
-echo   查看日志: docker-compose logs -f backend
-echo   停止服务: docker-compose down
+echo Common Commands:
+echo   Check status: docker-compose ps
+echo   View logs: docker-compose logs -f backend
+echo   Stop services: docker-compose down
 echo.
 
-:: 检查服务健康状态
-echo 🔍 检查服务状态...
+:: Check service health status
+echo Checking service status...
 timeout /t 5 /nobreak >nul
 
-:: 检查后端健康状态
+:: Check backend health status
 curl -s http://localhost:8000/health >nul 2>&1
 if %errorlevel% equ 0 (
-    echo ✅ 后端服务运行正常
+    echo [OK] Backend service is running normally
 ) else (
-    echo ⚠️ 后端服务可能还在启动中...
+    echo [WARNING] Backend service may still be starting...
 )
 
-:: 显示容器状态
+:: Display container status
 echo.
-echo 📊 容器状态:
+echo Container Status:
 docker-compose ps
 
 echo.
-echo 🎯 提示: 
-echo   - 首次启动可能需要几分钟下载镜像
-echo   - 如果服务无法访问，请等待1-2分钟后重试
-echo   - 遇到问题可以运行: docker-compose logs -f [服务名]
+echo Tips:
+echo   - First startup may take several minutes to download images
+echo   - If services are not accessible, please wait 1-2 minutes and retry
+echo   - For troubleshooting, run: docker-compose logs -f [service_name]
 echo.
 
-:: 询问是否打开浏览器
-set /p open_browser="是否自动打开浏览器? (y/n): "
+:: Ask whether to open browser
+set /p open_browser="Open browser automatically? (y/n): "
 if /i "%open_browser%"=="y" (
-    echo 🌐 正在打开浏览器...
+    echo Opening browser...
     start http://localhost:3000
     start http://localhost:8000/docs
 )
 
 echo.
-echo 按任意键退出...
+echo Press any key to exit...
 pause >nul

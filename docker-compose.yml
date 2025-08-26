@@ -1,10 +1,9 @@
 # Trading Robot Docker Compose Configuration
-version: '3.8'
 
 services:
-  # PostgreSQL数据库
+  # PostgreSQL Database
   postgres:
-    image: postgres:15-alpine
+    image: postgres:15
     container_name: trading_robot_postgres
     environment:
       POSTGRES_DB: trading_robot
@@ -13,7 +12,7 @@ services:
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backend/scripts/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+      - ./backend/scripts:/docker-entrypoint-initdb.d
     ports:
       - "5432:5432"
     networks:
@@ -25,9 +24,9 @@ services:
       timeout: 10s
       retries: 3
 
-  # Redis缓存
+  # Redis Cache
   redis:
-    image: redis:7-alpine
+    image: redis:7
     container_name: trading_robot_redis
     command: redis-server --appendonly yes --requirepass redis_password
     volumes:
@@ -43,7 +42,7 @@ services:
       timeout: 10s
       retries: 3
 
-  # 后端API服务
+  # Backend API Service
   backend:
     build:
       context: ./backend
@@ -101,7 +100,7 @@ services:
       - backend
     restart: unless-stopped
 
-  # Celery Beat (定时任务调度器)
+  # Celery Beat (Scheduled Task Scheduler)
   celery_beat:
     build:
       context: ./backend
@@ -125,7 +124,7 @@ services:
       - backend
     restart: unless-stopped
 
-  # 前端应用
+  # Frontend Application
   frontend:
     build:
       context: ./frontend
@@ -142,9 +141,9 @@ services:
       - backend
     restart: unless-stopped
 
-  # Nginx反向代理
+  # Nginx Reverse Proxy
   nginx:
-    image: nginx:alpine
+    image: nginx:latest
     container_name: trading_robot_nginx
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
@@ -160,7 +159,7 @@ services:
       - frontend
     restart: unless-stopped
 
-  # Prometheus监控
+  # Prometheus Monitoring
   prometheus:
     image: prom/prometheus:latest
     container_name: trading_robot_prometheus
@@ -180,7 +179,7 @@ services:
       - trading_network
     restart: unless-stopped
 
-  # Grafana仪表板
+  # Grafana Dashboard
   grafana:
     image: grafana/grafana:latest
     container_name: trading_robot_grafana

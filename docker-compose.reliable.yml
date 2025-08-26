@@ -1,0 +1,140 @@
+# Trading Robot Docker Compose - Reliable Configuration
+# Uses stable images and fallback strategies
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15
+    container_name: trading_robot_postgres
+    environment:
+      POSTGRES_DB: trading_robot
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password123
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/scripts:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    networks:
+      - trading_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7
+    container_name: trading_robot_redis
+    command: redis-server --appendonly yes --requirepass redis123
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - trading_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API Service
+  backend:
+    image: python:3.11
+    container_name: trading_robot_backend
+    working_dir: /app
+    environment:
+      - DATABASE_URL=postgresql://postgres:password123@postgres:5432/trading_robot
+      - REDIS_URL=redis://:redis123@redis:6379/0
+      - SECRET_KEY=trading-robot-secret-key-2024
+      - DEBUG=true
+      - LOG_LEVEL=INFO
+      - PYTHONPATH=/app
+    volumes:
+      - ./backend:/app
+      - ./backend/logs:/app/logs
+      - ./backend/data:/app/data
+    ports:
+      - "8000:8000"
+    networks:
+      - trading_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    command: >
+      bash -c "
+        echo 'Installing dependencies...' &&
+        pip install --no-cache-dir --upgrade pip &&
+        pip install --no-cache-dir fastapi uvicorn[standard] sqlalchemy psycopg2-binary redis celery python-multipart jinja2 aiofiles pydantic-settings alembic &&
+        echo 'Dependencies installed successfully' &&
+        echo 'Starting application...' &&
+        uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+      "
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Frontend Service
+  frontend:
+    image: node:18
+    container_name: trading_robot_frontend
+    working_dir: /app
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    networks:
+      - trading_network
+    depends_on:
+      - backend
+    restart: unless-stopped
+    command: >
+      bash -c "
+        echo 'Installing frontend dependencies...' &&
+        npm install &&
+        echo 'Starting frontend development server...' &&
+        npm run dev
+      "
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: trading_robot_nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+    networks:
+      - trading_network
+    depends_on:
+      - backend
+      - frontend
+    restart: unless-stopped
+
+networks:
+  trading_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local

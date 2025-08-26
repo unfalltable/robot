@@ -1,46 +1,44 @@
-# 使用Python 3.11官方镜像
-FROM python:3.11-slim
+# Use Python 3.11 official image (full version for better compatibility)
+FROM python:3.11
 
-# 设置工作目录
+# Set working directory
 WORKDIR /app
 
-# 设置环境变量
+# Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
-# 安装系统依赖
+# Install system dependencies (python:3.11 already has most tools)
 RUN apt-get update && apt-get install -y \
-    gcc \
-    g++ \
     libpq-dev \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# 复制依赖文件
+# Copy dependency files
 COPY requirements.txt .
 
-# 安装Python依赖
-RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
+# Install Python dependencies with mirror
+RUN pip install --upgrade pip -i https://pypi.tuna.tsinghua.edu.cn/simple && \
+    pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
-# 复制应用代码
+# Copy application code
 COPY . .
 
-# 创建必要的目录
+# Create necessary directories
 RUN mkdir -p /app/logs /app/data
 
-# 设置权限
+# Set permissions
 RUN chmod +x /app/scripts/*.py
 
-# 健康检查
+# Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# 暴露端口
+# Expose port
 EXPOSE 8000
 
-# 启动命令
+# Start command
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]

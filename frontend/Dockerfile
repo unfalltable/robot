@@ -1,47 +1,47 @@
-# 多阶段构建
-# 第一阶段：构建
+# Multi-stage build
+# Stage 1: Build
 FROM node:18-alpine AS builder
 
-# 设置工作目录
+# Set working directory
 WORKDIR /app
 
-# 复制package文件
+# Copy package files
 COPY package*.json ./
 
-# 安装依赖
+# Install dependencies
 RUN npm ci --only=production
 
-# 复制源代码
+# Copy source code
 COPY . .
 
-# 构建应用
+# Build application
 RUN npm run build
 
-# 第二阶段：运行
+# Stage 2: Runtime
 FROM node:18-alpine AS runner
 
-# 设置工作目录
+# Set working directory
 WORKDIR /app
 
-# 创建非root用户
+# Create non-root user
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# 复制构建产物
+# Copy build artifacts
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
-# 设置权限
+# Set permissions
 RUN chown -R nextjs:nodejs /app
 USER nextjs
 
-# 暴露端口
+# Expose port
 EXPOSE 3000
 
-# 设置环境变量
+# Set environment variables
 ENV PORT=3000
 ENV NODE_ENV=production
 
-# 启动命令
+# Start command
 CMD ["node", "server.js"]

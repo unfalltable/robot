@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 title Trading Robot Control Panel
 
 :menu
@@ -10,46 +11,74 @@ echo ==========================================
 echo.
 echo Please select an option:
 echo.
-echo 1. Quick Start (Recommended)
-echo 2. Full Start (Detailed Process)
-echo 3. Development Mode
-echo 4. Check Service Status
-echo 5. View Logs
-echo 6. Stop Services
-echo 7. Open Web Pages
-echo 8. Help
-echo 9. Exit
+echo === RECOMMENDED FOR END USERS ===
+echo 1. Start Trading Robot (Recommended)
+echo 2. Prepare Images First (Slow Network)
+echo.
+echo === ADVANCED OPTIONS ===
+echo 3. Quick Start (Original)
+echo 4. Full Start (Detailed Process)
+echo 5. Development Mode
+echo.
+echo === MONITORING ===
+echo 6. Check Service Status
+echo 7. View Logs
+echo 8. Stop Services
+echo 9. Open Web Pages
+echo.
+echo === TROUBLESHOOTING ===
+echo 10. Local Development (No Docker)
+echo 11. Setup Docker Mirror
+echo 12. Fix Docker Network Issues
+echo.
+echo 13. Help
+echo 14. Exit
 echo.
 
-set /p choice="Enter your choice (1-9): "
+set /p choice="Enter your choice (1-14): "
 
 if "%choice%"=="1" (
-    call quick-start.bat
+    call start-distribution.bat
     goto menu
 ) else if "%choice%"=="2" (
-    call start.bat
+    call prepare-images.bat
     goto menu
 ) else if "%choice%"=="3" (
-    call dev-start.bat
+    call quick-start.bat
     goto menu
 ) else if "%choice%"=="4" (
-    call status.bat
+    call start.bat
     goto menu
 ) else if "%choice%"=="5" (
-    call logs.bat
+    call dev-start.bat
     goto menu
 ) else if "%choice%"=="6" (
-    call stop.bat
+    call status.bat
     goto menu
 ) else if "%choice%"=="7" (
+    call logs.bat
+    goto menu
+) else if "%choice%"=="8" (
+    call stop.bat
+    goto menu
+) else if "%choice%"=="9" (
     echo Opening web pages...
     start http://localhost:3000
     start http://localhost:8000/docs
     start http://localhost:3001
     goto menu
-) else if "%choice%"=="8" (
+) else if "%choice%"=="10" (
+    call start-local.bat
+    goto menu
+) else if "%choice%"=="11" (
+    call setup-docker-mirror.bat
+    goto menu
+) else if "%choice%"=="12" (
+    call fix-docker-network.bat
+    goto menu
+) else if "%choice%"=="13" (
     goto help
-) else if "%choice%"=="9" (
+) else if "%choice%"=="14" (
     exit /b 0
 ) else (
     echo Invalid choice, please try again
@@ -61,47 +90,47 @@ if "%choice%"=="1" (
 cls
 echo.
 echo ==========================================
-echo     📚 Trading Robot 使用帮助
+echo     Trading Robot Help Guide
 echo ==========================================
 echo.
-echo 🚀 启动方式:
-echo   - 快速启动: 一键启动所有服务，适合日常使用
-echo   - 完整启动: 显示详细启动过程，适合首次使用
-echo   - 开发模式: 启动基础服务，手动启动应用，适合开发
+echo Startup Options:
+echo   - Quick Start: One-click start all services, suitable for daily use
+echo   - Full Start: Show detailed startup process, suitable for first use
+echo   - Development Mode: Start basic services, manually start apps, suitable for development
 echo.
-echo 📱 访问地址:
-echo   - 前端界面: http://localhost:3000
-echo   - API文档:  http://localhost:8000/docs
-echo   - 监控面板: http://localhost:3001 (admin/admin123)
+echo Access URLs:
+echo   - Frontend: http://localhost:3000
+echo   - API Docs: http://localhost:8000/docs
+echo   - Monitor:  http://localhost:3001 (admin/admin123)
 echo.
-echo 🔧 常用命令:
-echo   - 查看状态: docker-compose ps
-echo   - 查看日志: docker-compose logs -f [服务名]
-echo   - 重启服务: docker-compose restart [服务名]
-echo   - 停止服务: docker-compose down
+echo Common Commands:
+echo   - Check status: docker-compose ps
+echo   - View logs: docker-compose logs -f [service_name]
+echo   - Restart service: docker-compose restart [service_name]
+echo   - Stop services: docker-compose down
 echo.
-echo 📋 服务说明:
-echo   - backend: 后端API服务
-echo   - frontend: 前端界面
-echo   - postgres: 数据库
-echo   - redis: 缓存和消息队列
-echo   - celery_worker: 后台任务处理
-echo   - nginx: 反向代理
-echo   - prometheus: 监控数据收集
-echo   - grafana: 监控面板
+echo Service Description:
+echo   - backend: Backend API service
+echo   - frontend: Frontend interface
+echo   - postgres: Database
+echo   - redis: Cache and message queue
+echo   - celery_worker: Background task processing
+echo   - nginx: Reverse proxy
+echo   - prometheus: Monitoring data collection
+echo   - grafana: Monitoring dashboard
 echo.
-echo 🛠️ 故障排除:
-echo   1. 端口被占用: 修改docker-compose.yml中的端口映射
-echo   2. 服务启动失败: 查看日志 docker-compose logs [服务名]
-echo   3. 数据库连接失败: 重启数据库 docker-compose restart postgres
-echo   4. 内存不足: 关闭不必要的服务或增加系统内存
+echo Troubleshooting:
+echo   1. Port occupied: Modify port mapping in docker-compose.yml
+echo   2. Service startup failed: Check logs docker-compose logs [service_name]
+echo   3. Database connection failed: Restart database docker-compose restart postgres
+echo   4. Insufficient memory: Close unnecessary services or increase system memory
 echo.
-echo 📞 获取支持:
-echo   - 查看README.md文件
-echo   - 检查项目文档
-echo   - 提交GitHub Issue
+echo Get Support:
+echo   - Check README.md file
+echo   - Check project documentation
+echo   - Submit GitHub Issue
 echo.
 
-echo 按任意键返回主菜单...
+echo Press any key to return to main menu...
 pause >nul
 goto menu

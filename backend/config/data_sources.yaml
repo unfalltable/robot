@@ -9,9 +9,9 @@ market_data:
   # OKX配置
   okx:
     sandbox: true  # 是否使用沙盒环境
-    api_key: "${OKX_API_KEY}"
-    secret_key: "${OKX_SECRET_KEY}"
-    passphrase: "${OKX_PASSPHRASE}"
+    api_key: "b03630d9-4ce5-4648-8de3-41bc1f2102f0"
+    secret_key: "1AFE068B861772C4E60B2FD0945DF18E"
+    passphrase: "L159159l#@!"
     
     # 默认订阅的交易对
     default_symbols:

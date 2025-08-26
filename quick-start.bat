@@ -1,52 +1,52 @@
 @echo off
 chcp 65001 >nul
-title Trading Robot - 快速启动
+title Trading Robot - Quick Start
 
 echo.
 echo ==========================================
-echo     🚀 Trading Robot 快速启动
+echo     Trading Robot Quick Start
 echo ==========================================
 echo.
 
-:: 快速检查Docker
+:: Quick Docker check
 docker --version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo ❌ Docker未安装，请先安装Docker Desktop
+    echo [ERROR] Docker not installed, please install Docker Desktop first
     pause
     exit /b 1
 )
 
-:: 创建必要的配置文件
+:: Create necessary configuration files
 if not exist ".env" copy ".env.example" ".env" >nul 2>&1
 if not exist "backend\monitoring.env" copy "backend\monitoring.env.example" "backend\monitoring.env" >nul 2>&1
 
-echo 🚀 正在启动所有服务...
+echo Starting all services...
 echo.
 
-:: 一键启动所有服务
+:: One-click start all services
 docker-compose up -d --build
 
 echo.
-echo ⏳ 等待服务启动完成...
+echo Waiting for services to start...
 timeout /t 20 /nobreak >nul
 
-:: 初始化数据库
-echo 🗄️ 初始化数据库...
+:: Initialize database
+echo Initializing database...
 docker-compose exec -T backend python scripts/init_database.py >nul 2>&1
 
 echo.
 echo ========================================
-echo           ✅ 启动完成！
+echo           Startup Complete!
 echo ========================================
 echo.
-echo 🌐 访问地址:
-echo   前端: http://localhost:3000
-echo   API:  http://localhost:8000/docs
-echo   监控: http://localhost:3001
+echo Access URLs:
+echo   Frontend: http://localhost:3000
+echo   API Docs: http://localhost:8000/docs
+echo   Monitor:  http://localhost:3001
 echo.
 
-:: 自动打开浏览器
+:: Auto open browser
 start http://localhost:3000
 
-echo 按任意键退出...
+echo Press any key to exit...
 pause >nul
